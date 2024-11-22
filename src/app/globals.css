@@ -23,3 +23,15 @@ body {
 main {
   width:90%;
 }
+/* Toast 팝업 스타일 */
+.Toastify__toast {
+  border-radius: 8px; /* 네모난 모서리 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff; /* 흰색 배경 */
+  color: #333333; /* 글자색 */
+}
+
+/* Progress Bar 스타일 */
+.Toastify__progress-bar {
+  background: linear-gradient(to right, #4caf50, #8bc34a); /* 녹색 그라디언트 */
+}

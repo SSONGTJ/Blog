@@ -1,7 +1,9 @@
 'use client'
 import { signUp } from "@/services/firebaseUserService";
 import { Button, TextField } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import styled from "styled-components";
 
 const Wrap = styled.div`
@@ -15,6 +17,7 @@ export default function Page() {
     const [id, setId] = useState('');
     const [password,setPassword] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
+    const router = useRouter();
 
     useEffect (()=>{
         if(name !=='' && id !== '' && password !== ''){
@@ -26,10 +29,18 @@ export default function Page() {
 
     const handleSubmit = async (e:React.FormEvent)=>{
         e.preventDefault();
-        await signUp({name,id,password});
-        setName('');
-        setId('');
-        setPassword('');
+        try {
+            await signUp({name,id,password});
+            toast.success('회원가입이 완료됐습니다.')
+            setName('');
+            setId('');
+            setPassword('');
+            setTimeout(()=>{
+                router.push('/');
+            }, 2000);
+        } catch (error){
+            toast.error('회원가입 실패!');
+        }
     }
 
     return (
