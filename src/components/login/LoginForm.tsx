@@ -9,12 +9,9 @@ import {
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import {
-  getAllUsers,
-  getUserData,
-  login,
-} from "../../services/firebaseUserService";
+
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 const LoginBox = styled.div`
   display: flex;
@@ -50,18 +47,18 @@ const LoginForm: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      //로그인 api 호출
-      const response = await login(id, password);
-      if (response.status === 200) {
-        console.log("로그인 성공");
-        sessionStorage.setItem("token", response.token);
-        router.push("/");
-      } else {
-        console.error("로그인 실패~~");
-      }
-    } catch (error) {
-      console.error(error);
+    const res = await signIn("credentials", {
+      redirect: false,
+      id,
+      password,
+    });
+    console.log(res);
+    if (res?.ok) {
+      console.log("로그인 성공");
+      router.push("/");
+    } else {
+      console.error("로그인 실패", res?.error);
+      alert("로그인 실패");
     }
   };
 
