@@ -3,12 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials"; // 올바른 
 import { getUserData } from "@/services/firebaseUserService";
 import { compare } from "bcryptjs";
 
-// 타입정의
-interface User {
-  id: string;
-  name: string;
-}
-
 export default NextAuth({
   providers: [
     CredentialsProvider({
@@ -19,18 +13,21 @@ export default NextAuth({
       },
       async authorize(credentials) {
         const { id, password } = credentials!;
-
         try {
           // 유저 데이터 가져오기
           const userData = await getUserData(id);
-          if (userData) {
-            // 비밀번호 비교
-            const isPasswordValid = await compare(password, userData.password);
-            if (isPasswordValid) {
-              return { id: userData.id, name: userData.name }; // 비밀번호가 맞으면 user 객체 반환
-            }
+
+          if (!userData) {
+            throw new Error("존재하지 않는 사용자입니다.");
           }
-          return null; // 인증 실패 시 null 반환
+
+          // 비밀번호 비교
+          const isPasswordValid = await compare(password, userData.password);
+          if (isPasswordValid) {
+            return { id: userData.id, name: userData.name }; // 비밀번호가 맞으면 user 객체 반환
+          } else {
+            throw new Error("비밀번호가 틀렸습니다.");
+          }
         } catch (error) {
           console.error("로그인 실패", error);
           return null;
@@ -38,18 +35,21 @@ export default NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/src/app/page.tsx", // 로그인 페이지 경로
-  },
   session: {
-    strategy: "database", // JWT 세션 방식으로 설정 (로컬 세션도 가능)
+    strategy: "jwt", // JWT 세션 방식으로 설정 (로컬 세션도 가능)
   },
   callbacks: {
-    async session({ session, user }) {
+    async jwt({ token, user }) {
       if (user) {
-        session.user = user as User; // 타입 캐스팅
+        token.id = user.id; // 타입 캐스팅
+        token.name = user.name;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user = { id: token.id, name: token.name };
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 });
